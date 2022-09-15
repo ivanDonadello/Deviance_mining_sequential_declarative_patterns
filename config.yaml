@@ -1,0 +1,144 @@
+---
+  aggregated_results_file: aggregated_res.csv
+  results_folder: results
+  #results_file: ivan_res_after_merging.csv
+  #data_folder: /media/idonadello/data
+  data_folder: data
+  exp_folder: experiments
+  fold_cross_val: 10
+  fold_grd_search: 5
+  standard_labellings:
+    - decl
+    - mr_tr
+    - mra_tra
+    - payload
+  classifiers_list:
+    - dt
+    - ripperK
+  parameters_ripperK:
+    prune_size:
+      #- 0.1
+      #- 0.25
+      - 0.33
+      #- 0.5
+      #- 0.66
+      #- 0.75
+      #- 0.9
+  parameters_dt:
+    max_depth:
+      - 2
+      - 4
+      - 8
+      - 10
+      - null
+    min_samples_leaf:
+      - 2
+      - 4
+      - 6
+      - 8
+      - 10
+    criterion:
+      - gini
+      - entropy
+    class_weight:
+      - null
+      - balanced
+  dataset_list:
+    - traffic
+    - sepsis
+    - bpi11
+    - bpi12
+    - bpi15A
+    - bpi15B
+    - bpi15C
+    - bpi15D
+    - bpi15E
+  feature_encoding_list:
+    - baseline
+    - mr
+    - tr
+    - mra
+    - tra
+    - declare
+    - hybrid
+    - payload
+    - dwd
+    - bs_data
+    - mr_data
+    - mra_data
+    - tr_data
+    - tra_data
+    - dc_data
+    - dc_dwd_payload
+    - hybrid_data
+    - hybrid_dwd
+    - hybrid_dwd_payload
+  feature_encoding_map:
+    baseline: IA
+    mr: MR
+    tr: TR
+    mra: MRA
+    tra: TRA
+    declare: Declare
+    hybrid: H
+    payload: Data
+    dwd: DeclD
+    bs_data: Data+IA
+    mr_data: Data+MR
+    tr_data: Data+TR
+    mra_data: Data+MRA
+    tra_data: Data+TRA
+    dc_data: Data+Declare
+    dc_dwd_payload: Data+DeclD
+    hybrid_data: Data+H
+    hybrid_dwd: H+DeclD
+    hybrid_dwd_payload: H+Data+DeclD
+  labelling_list:
+    traffic:
+      - decl3
+      - mr_tr
+      - mra_tra
+      - payload_Art157
+      - payload_Pay36
+    bpi11:
+      - decl
+      - mr_tr
+      - mra_tra
+      - payload_M13
+      - payload_T101
+    bpi12:
+      - decl2
+      - mr_tr
+      - mra_tra
+      - payload_6500
+      - payload_45000
+    bpi15A:
+      - decl2
+      - mr_tr
+      - mra_tra
+      - payload_560925
+    bpi15B:
+      - decl2
+      - mr_tr
+      - mra_tra
+      - payload_560925
+    bpi15C:
+      - decl2
+      - mr_tr
+      - mra_tra
+      - payload_560925
+    bpi15D:
+      - decl2
+      - mr_tr
+      - mra_tra
+      - payload_560925
+    bpi15E:
+      - decl2
+      - mr_tr
+      - mra_tra
+      - payload_560925
+    sepsis:
+      - decl
+      - mr_tr
+      - mra_tra
+      - payload2

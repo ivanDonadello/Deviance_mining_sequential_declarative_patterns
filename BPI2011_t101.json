@@ -1,0 +1,42 @@
+{
+  "py/object": "DevianceMiningPipeline.ConfigurationFile.ConfigurationFile",
+  "auto_ignored": [
+    "time:timestamp",
+    "concept: name",
+    "Label",
+    "Start date",
+    "End date",
+    "Diagnosis",
+    "Diagnosis code",
+    "Diagnosis Treatment",
+    "Combination ID",
+    "Treatment code",
+    "Activity code"
+  ],
+  "payload_settings": "bpi2011_settings.cfg",
+  "payload_type": {
+    "py/reduce": [
+      {
+        "py/type": "DevianceMiningPipeline.PayloadType.PayloadType"
+      },
+      {
+        "py/tuple": [
+          {
+            "py/tuple": [
+              "both"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "dt_max_depth": 10,
+  "dt_min_leaf": 5,
+  "sequence_threshold": 5,
+  "results_folder": "BPI2011_t101_data_prep_res",
+  "experiment_name": "BPI2011_t101",
+  "results_file": "BPI2011_t101_results_fixed.txt",
+  "log_name": "bpi2011_t101.xes",
+  "log_path_seq": "bpi2011_t101_{}.xes",
+  "output_folder": "EnglishBPI2011_t101"
+}
