@@ -1,52 +1,59 @@
-import pandas as pd
-import os
-import csv
+"""
+Computazione dei risultati aggregati da i risultati della mia pipeline
+"""
 import pdb
+import pandas as pd
+import yaml
+import os
 import numpy as np
+import csv
+from yaml.loader import SafeLoader
 
-res_dir = 'data/experiments'
-dataset_list = ['bpi12', 'bpi15B', 'bpi15C', 'bpi15E', 'bpi15D', 'sepsis']
-encoding_list = ['decl', 'mr_tr', 'mra_tra', 'payload']
-strategy_list = ['IA', 'Declare', 'IA+MR', 'IA+TR', 'IA+TRA', 'IA+MRA', 'Hybrid', 'Payload', 'Data+IA', 'Data+Declare',
-                 'Data+IA+MR', 'Data+IA+TR', 'Data+IA+TRA', 'Data+IA+MRA', 'Data+Hybrid', 'Declare Data Aware',
-                 'Payload+Declare Data Aware', 'Hybrid+Declare Data Aware', 'Hybrid+Payload+Declare Data Aware']
-metrics = ['precision', 'recall', 'f1', 'auc']
+# Open the file and load the file
+with open('config.yaml') as f:
+    config = yaml.load(f, Loader=SafeLoader)
 
-res_dict = {}
-for encoding in encoding_list:
-    res_dict[encoding] = {}
-    for strategy in strategy_list:
-        res_dict[encoding][strategy] = {}
-        for metric in metrics:
-            res_dict[encoding][strategy][metric] = []
+results_header1 = ['']
+results_header2 = ['Labelling'] + ['Prec', 'Rec', 'F1', 'AUC']*len(config['feature_encoding_list'])
+for encoding in config['feature_encoding_list']:
+    results_header1 += [config['feature_encoding_map'][encoding]]*4
 
-for encoding in encoding_list:
-    for dataset_name in dataset_list:
-        for dir in os.listdir(res_dir):
-            if dir.startswith(f'{dataset_name}_{encoding}') and dir.endswith('results'):
-                res_df = pd.read_csv(os.path.join(res_dir, dir, 'benchmarks.csv'))
-                #if encoding == 'decl':
-                    #print(dir)
-                for strategy in strategy_list:
-                    tmpA_df = res_df[res_df['strategy'] == strategy]
-                    tmp_res_per_dt_depth = {m: [] for m in metrics}
-                    for dt_depth in tmpA_df['confvalue'].unique():
-                        tmpB_df = tmpA_df[tmpA_df['confvalue'] == dt_depth]
-                        for metric in metrics:
-                            tmp_res_per_dt_depth[metric].append(tmpB_df[tmpB_df['metrictype'] == metric]['metricvalue'].mean())
 
-                    for metric in metrics:
-                        res_dict[encoding][strategy][metric].append(np.max(tmp_res_per_dt_depth[metric]))
-                #print(dir)
-#pdb.set_trace()
-print("df")
-with open('results_ivan.csv', 'w') as f:
+
+#config['results_folder'],
+input_classifier = 'rk'
+results_df = pd.read_csv(os.path.join(config['results_folder'], f"{input_classifier}_{config['dataset_list'][0]}.csv"))
+
+
+for dataset in config['dataset_list'][1:]:
+    tmp_df = pd.read_csv(os.path.join(config['results_folder'], f"{input_classifier}_{dataset}.csv"))
+    results_df = pd.concat([results_df, tmp_df], axis=0)
+
+results_dict = {}
+with open(os.path.join(config['results_folder'], f"{input_classifier}_{config['aggregated_results_file']}"), 'w') as f:
     writer = csv.writer(f)
-    writer.writerow(['encoding', 'strategy', 'precision', 'recall', 'f1', 'auc'])
-    for encoding in encoding_list:
-        for strategy in strategy_list:
-            tmp_list = []
-            for metric in metrics:
-                tmp_list.append(np.mean(res_dict[encoding][strategy][metric]))
+    writer.writerow(results_header1)
+    writer.writerow(results_header2)
 
-            writer.writerow([encoding, strategy] + tmp_list)
+    for labelling in config['standard_labellings']:
+        results_dict[labelling] = {}
+        metrics_per_encoding = []
+        for encoding in config['feature_encoding_list']:
+            results_dict[labelling][config['feature_encoding_map'][encoding]] = {}
+            metrics_per_dataset = []
+            for dataset in config['dataset_list']:
+
+                query_res_df = results_df[(results_df['Dataset'] == dataset) &
+                                          (results_df['Labelling'].str.contains(labelling)) &
+                                          (results_df['Encoding'] == encoding)]
+                query_res_df = query_res_df.mean(axis=0)
+                tmp_metrics_res = []  # tmp_metrics_res is a matrix whose cols are the metrics and rows the results for each fold
+                for fold_id in range(config['fold_cross_val']):
+                    tmp_metrics_res.append([query_res_df[f'Prec_fold{fold_id}'], query_res_df[f'Rec_fold{fold_id}'],
+                                            query_res_df[f'F1_fold{fold_id}'], query_res_df[f'AUC_fold{fold_id}']])
+
+                results_dict[labelling][config['feature_encoding_map'][encoding]][dataset] = tmp_metrics_res
+                metrics_per_dataset.append(np.mean(tmp_metrics_res, axis=0).tolist())
+            metrics_per_encoding += np.around(100*np.mean(metrics_per_dataset, axis=0), 2).tolist()
+        writer.writerow([labelling] + metrics_per_encoding)
+
