@@ -94,7 +94,7 @@ class Ruleset:
     def isuniversal(self):
         """Return whether the Ruleset has an empty rule, i.e. it will always return positive predictions."""
         if len(self.rules) >= 1:
-            return all(rule.isempty() for rule in self.rules)
+            return any(rule.isempty() for rule in self.rules)
         else:
             return False
 

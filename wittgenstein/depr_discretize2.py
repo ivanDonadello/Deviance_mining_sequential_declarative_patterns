@@ -175,7 +175,7 @@ class BinTransformer:
         elif interval.right == float("inf"):
             return f">{interval.left}"
         else:
-            return f"{interval.left} - {interval.right}"
+            return f"{interval.left}-{interval.right}"
 
     def _str_to_floor_ceil(self, value, feat):
         """Find min, max separated by a dash"""  # . Return None if invalid pattern."""
@@ -189,18 +189,12 @@ class BinTransformer:
 
     def find_floor_ceil(self, value, feat):
         """find min, max separated by a dash. Return None if invalid pattern."""
-        # try new method
-        splits = value.split(' - ')
-        if len(splits) == 2:
-            return splits[0], splits[1]
-
         dashes = []
         for i, char in enumerate(value):
             # Found a possible split and it's not the first number's minus sign
             if char == "-" and i != 0:
                 dashes.append(i)
         if len(dashes) > 1:
-            print(feat, value, dashes)
             dashes = [idx for idx in dashes if not self._maybeexp_idx(value, idx)]
         elif len(dashes) == 1:
             split_idx = dashes[0]

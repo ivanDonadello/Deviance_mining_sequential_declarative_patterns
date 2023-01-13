@@ -260,10 +260,6 @@ class RIPPER(AbstractRulesetClassifier):
             # Run optimization iteration
             if self.verbosity >= 1:
                 print(f"optimization run {iter} of {self.k}")
-            for rule in self.ruleset_:
-                if len(rule) == 0:
-                    import pdb
-                    pdb.set_trace()
             if cn_optimize:
                 newset = self._optimize_ruleset_cn(
                     self.ruleset_,
@@ -280,10 +276,7 @@ class RIPPER(AbstractRulesetClassifier):
                     prune_size=self.prune_size,
                     random_state=iter_random_state,
                 )
-            for rule in newset:
-                if len(rule) == 0:
-                    import pdb
-                    pdb.set_trace()
+
             if self.verbosity >= 1:
                 print()
                 print("OPTIMIZED RULESET:")
@@ -743,8 +736,6 @@ class RIPPER(AbstractRulesetClassifier):
                 eval_index_on_ruleset=(i, replacement_ruleset),
                 verbosity=self.verbosity,
             )
-            if len(pr_replacement) == 0:
-                pr_replacement = original_ruleset[i]
             replacement_ruleset = Ruleset(
                 base_functions.i_replaced(original_ruleset.rules, i, pr_replacement)
             )
@@ -788,7 +779,6 @@ class RIPPER(AbstractRulesetClassifier):
                 print(
                     f"calculate potential dl for ds with replacement {pr_replacement}"
                 )
-
             replacement_dl = (
                 _rs_total_bits(
                     replacement_ruleset,
@@ -878,7 +868,6 @@ class RIPPER(AbstractRulesetClassifier):
         max_rule_conds=None,
         random_state=None,
     ):
-
         """Optimization phase."""
 
         if self.verbosity >= 2:
@@ -987,10 +976,6 @@ class RIPPER(AbstractRulesetClassifier):
                 print(
                     f"calculate potential dl for ds with replacement {pr_replacement}"
                 )
-
-            if len(pr_replacement) == 0:
-                pr_replacement = original_ruleset[i]
-
             replacement_dl = (
                 _rs_total_bits_cn(
                     self.cn,
@@ -1214,10 +1199,9 @@ def _r_theory_bits(rule, possible_conds, bits_dict=None, verbosity=0):
         #    raise TypeError(f'param rule in _r_theory_bits is type {type(rule)}; it should be type Rule')
         k = len(rule.conds)  # Number of rule conditions
         n = len(possible_conds)  # Number of possible conditions
+        k = max(k, 1) # universal or negation rule is 1 bit
         pr = k / n
-
         S = k * math.log2(1 / pr) + (n - k) * math.log2((1 / (1 - pr)))  # S(n, k, pr)
-
         K = math.log2(k)  # Number bits need to send integer k
         rule_dl = 0.5 * (
             K + S
@@ -1226,10 +1210,8 @@ def _r_theory_bits(rule, possible_conds, bits_dict=None, verbosity=0):
             print(
                 f"rule theory bits| {rule} k {k} n {n} pr {rnd(pr)}: {rnd(rule_dl)} bits"
             )
-
         # rule.dl = rule_dl
-        return rule_dl
-
+        return max(rule_dl, 1) # universal or negation rule is 1 bit
 
 def _rs_theory_bits(ruleset, possible_conds, verbosity=0):
     """Returns theory description length (in bits) for a Ruleset."""
@@ -1238,9 +1220,7 @@ def _rs_theory_bits(ruleset, possible_conds, verbosity=0):
     #    raise TypeError(f'param ruleset in _rs_theory_bits should be type Ruleset')
     total = 0
     for rule in ruleset.rules:
-        #
         total += _r_theory_bits(rule, possible_conds, verbosity=verbosity)
-
         # total += rule_bits(rule, possible_conds, rem_pos, rem_neg, verbosity=verbosity)
         # rem_pos, rem_neg = base.rm_covered(rule, rem_pos, rem_neg)
     if verbosity >= 5:
@@ -1430,7 +1410,6 @@ def _rs_total_bits_cn(
 
     # if type(ruleset) != Ruleset:
     #    raise TypeError(f'param ruleset in _rs_total_bits should be type Ruleset')
-
     if ret_bestsubset and not bestsubset_dl:
         raise ValueError(
             f"ret_bestsubset must be True in order to return bestsubset_dl"

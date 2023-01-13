@@ -314,10 +314,9 @@ def recalibrate_proba(
         fpr = fp / p if p else 0
         rule.class_freqs = (fpr, tpr)
         rule.class_ns = (fp, tp)
-        if verbosity >= 1:
-            print('rule count:', len(ruleset.rules))
-            print('rule', rule)
-            print('n_samples', n_samples, 'p', p, 'tp', tp, 'fp', fp, 'ns', rule.class_ns, 'freqs', rule.class_freqs, '\n')
+        if verbosity >= 2:
+            print('rule', i, rule)
+            print('n_samples', n_samples, 'p', p, 'tp', tp, 'fp', fp, 'ns', rule.class_ns, 'freqs', rule.class_freqs)
         # Rule has insufficient samples if fewer than minsamples or lacks at least one correct sample
         if (
             n_samples < min_samples
@@ -333,7 +332,7 @@ def recalibrate_proba(
     fn = len(uncovered) - tn
     ruleset.uncovered_class_ns = (tn, fn)
     ruleset.uncovered_class_freqs = (tn, fn)
-    if verbosity >= 1:
+    if verbosity >= 2:
         print('n', n, 'tn', tn, 'fn', fn, 'ns', ruleset.uncovered_class_ns, 'neg freqs', ruleset.uncovered_class_freqs)
 
     # Issue warnings if trouble with sample size
