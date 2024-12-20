@@ -1,5 +1,5 @@
 """
-Computazione dei risultati aggregati da i risultati della mia pipeline
+Computation of the aggregated results from the classification pipeline
 """
 import pdb
 import pandas as pd
@@ -56,4 +56,3 @@ with open(os.path.join(config['results_folder'], f"{input_classifier}_{config['a
                 metrics_per_dataset.append(np.mean(tmp_metrics_res, axis=0).tolist())
             metrics_per_encoding += np.around(100*np.mean(metrics_per_dataset, axis=0), 2).tolist()
         writer.writerow([labelling] + metrics_per_encoding)
-
