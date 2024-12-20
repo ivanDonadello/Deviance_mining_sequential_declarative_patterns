@@ -1,8 +1,6 @@
 ---
   aggregated_results_file: aggregated_res.csv
   results_folder: results
-  #results_file: ivan_res_after_merging.csv
-  #data_folder: /media/idonadello/data
   data_folder: data
   exp_folder: experiments
   fold_cross_val: 10
