@@ -1,5 +1,5 @@
 """
-Mia pipeline di classification dai dataset prodotti da codice Giacomo
+Main code for running the experiments from the datasets encoded with the defined features
 """
 import numpy as np
 import pandas as pd
@@ -60,6 +60,8 @@ for fold_id in range(config['fold_cross_val']):
     results_header.append(f"Rec_fold{fold_id}")
     results_header.append(f"F1_fold{fold_id}")
     results_header.append(f"AUC_fold{fold_id}")
+    results_header.append(f"NumRules_fold{fold_id}")
+    results_header.append(f"AvgRuleLen_fold{fold_id}")
 results_header = ["timestamp", "Classifier", "Dataset", "Labelling", "Encoding"] + results_header
 
 for clf_name in config['classifiers_list']:
@@ -94,6 +96,11 @@ for clf_name in config['classifiers_list']:
                 feat_strategy_a = 1 if round(math.sqrt(num_features)) < 1 else round(math.sqrt(num_features))
                 feat_strategy_b = 1 if round(0.2 * num_features) < 1 else round(0.2 * num_features)
                 feat_strategy_c = 1 if round(0.3 * num_features) < 1 else round(0.3 * num_features)
+                
+                feat_strategy_a = min(1000, feat_strategy_a)
+                feat_strategy_b = min(1500, feat_strategy_b)
+                feat_strategy_c = min(2000, feat_strategy_c)
+                
                 pipeline_parameters = {"feature_selection__k": [feat_strategy_a, feat_strategy_b, feat_strategy_c]}
 
                 if clf_name == 'dt':
@@ -111,7 +118,7 @@ for clf_name in config['classifiers_list']:
                 selector = SelectKBest(mutual_info_classif)
                 pipeline = Pipeline(steps=[("feature_selection", selector), ("classifier", clf)])
 
-                print(f"Processing {clf_name}, {dataset}, {labelling}, {encoding} ...")
+                print(f"Processing {clf_name}, {dataset}, {labelling}, {encoding} at {datetime.now()} ...")
                 for train_index, test_index in skf_cross_val.split(X, y):
                     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
                     y_train, y_test = y[train_index], y[test_index]
@@ -126,6 +133,13 @@ for clf_name in config['classifiers_list']:
                     tmp_results.append(rec)
                     tmp_results.append(f1)
                     tmp_results.append(auc)
+                    
+                    if clf_name == 'dt':
+                        tmp_results.append(gsCV.best_estimator_[-1].get_n_leaves())
+                    else:
+                        tmp_results.append(len(gsCV.best_estimator_[-1].ruleset_))
+                        tmp = [len(rule) for rule in gsCV.best_estimator_[-1].ruleset_]
+                        tmp_results.append(np.mean(tmp))
                 print(tmp_results)
                 results.append([str(datetime.now())] + tmp_results)
                 print(f"--- {time.time() - start_time} seconds for {clf_name}, {dataset}, {labelling}, {encoding} ---")
